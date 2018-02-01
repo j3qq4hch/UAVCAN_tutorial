@@ -1,9 +1,9 @@
-#Introduction#
+# Introduction #
 In this article we will make a UAVCAN to RCPWM converter using [Zubax Babel](https://zubax.com/products/babel) hardware. ![](babel.png) 
 
 From software point of view we will try to keep things as simple as possible. We will use only [libcanard library](https://github.com/UAVCAN/libcanard) which a very light-weight UAVCAN implementation and [stm32 standard peripheral library for stm32f37x](Caption) family of controllers. Using of different HALs and any type of RTOS is avoided on purpose, as this is very basic example. 
 
-#Goal#
+# Goal #
 So our goal is to make Babel act as UAVCAN node and receive RCPWM values via CAN and then convert them to RCPWM signal. 
 
 **Couple words about RCPWM.** [RCPWM](https://en.wikipedia.org/wiki/Servo_control) is the most widespread way of interaction in hobby RC world. All servos and almost all motor controllers support it(and there are lots and lots of other devices that communicate this way). Without doubt it is very old, slow and limited interface and today it must be replaced with something better like UAVCAN. But this is legacy and we have to deal with it. From physical standpoint RCPWM is just PWM signal with period of 20mS and the infromation is coded in pulse widthm which may vary from 1 mS to 2 mS with neutral value 1.5 mS. To generate that we will use timers that are available on Zubax Babel according to [datasheet](https://files.zubax.com/products/com.zubax.babel/Zubax_Babel_Datasheet.pdf) where we can find detailed pinout: 
@@ -16,7 +16,7 @@ We will use TIM12\_CH1, TIM12\_CH2, TIM3\_CH1, TIM3\_CH2, TIM3\_CH3, TIM3\_CH4, 
 
 **Important note**. CAN bus in general needs termination resistors connected on both sides of the line. If the line is short(10-20 cm) termination resistors may not be needed or only one may be sufficient. Сonveniently Zubax Babel has software-programmable termination resistor. If CAN bus for seems not working for some reason - please check if termination resistor is activated. 
 
-#Implementation#
+# Implementation #
 First of all hardware initialization must be performed as libcanard stm32 driver configures CAN peripheral only and avoids clocking and gpio configuration. `hw_init()` function is trivial and is left out of this text. However it may be found in the demo project [here](uavcan2rcpwm.rar). 
 
 Some global definitions must be presented in the project in any way. Here are they
@@ -271,7 +271,7 @@ After UAVCAN GUI Tool receives this message first time it will try to get more i
     }
 
 
-#App architecture#
+# App architecture #
 As libcanard does not use any interrupts and because our intention to keep everything simple the application will be organised as ordinar cycle
 
     int main(void)
