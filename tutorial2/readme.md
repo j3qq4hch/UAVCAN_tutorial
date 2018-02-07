@@ -93,6 +93,7 @@ Now let's add our publisher to main, so now it looks like this:
     }
 
 Now its time to flash the firmware to Babel and check if everything is working as expected. You should find a bunch of new messages in Bus monitor panel:
+
 ![](busm.png)
 
 Now lets go to `UAVCAN Plotter` which may be found in `Tools -> Plotter` menu.
