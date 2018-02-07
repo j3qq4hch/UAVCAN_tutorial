@@ -101,7 +101,9 @@ Firstly lets just plot every message of `uavcan.protocol.debug.KeyValue` type. F
 
 ![](plot_all.png) 
 
-Now you should see something like this: 
+Now you should see something like this:
+ 
+**Important note** You may adjust the scale of time and value axes by moving the mouse while holding right button pressed
 
 ![](plot.png)
 
