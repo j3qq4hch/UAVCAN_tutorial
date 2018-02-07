@@ -108,7 +108,7 @@ Now you should see something like this:
 
 ![](plot.png)
 
-The plot looks pretty weird because plotter tries to display all values of `debug.KeyValue` type and Babel transmitss two diifferent values at: sinus value and step. Lets delete this plot and add two more, one for each separate value:
+The plot looks pretty weird because plotter tries to display all values of `debug.KeyValue` type and Babel transmitss two diifferent values: sinus value and step. Lets delete this plot and add two more, one for each separate value:
 
  ![](plot_sin.png)    ![](plot_stp.png)
 
