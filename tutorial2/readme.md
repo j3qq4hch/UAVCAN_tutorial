@@ -1,5 +1,5 @@
 # Introduction #
-In this article we will turn[Zubax Babel](https://zubax.com/products/babel) into simple UAVCAN publisher. 
+In this article we will turn [Zubax Babel](https://zubax.com/products/babel) into simple UAVCAN publisher. 
 All the code here is based on previous tutorial. 
 
 # Goal #
