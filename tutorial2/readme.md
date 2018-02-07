@@ -1,11 +1,11 @@
-#Introduction#
+# Introduction #
 In this article we will turn[Zubax Babel](https://zubax.com/products/babel) into simple UAVCAN publisher. 
 All the code here is based on previous tutorial. 
 
-#Goal#
+# Goal #
 Out goal is to publish couple different values to UAVCAN and to check if everything works properly plotting graphs in UAVCAN GUI Tool plotter. 
 
-#Implementation#
+# Implementation #
 We will use UAVCAN message [`uavcan.protocol.debug.KeyValue`](http://uavcan.org/Specification/7._List_of_standard_data_types/#keyvalue). UAVCAN specification says `float32` values can be broadcasted this way. We can use it to broadcast some custom sensor data, ADC data or just any named value. For the sake of simplicity in this tutorial we will broadcast sin values. But assuming MCU resorces are quiet constrained we will take values from lookup table. We will also broadcast the second value - current table index. 
 
     #define PUBLISHER_PERIOD_mS 25
