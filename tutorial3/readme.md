@@ -49,7 +49,7 @@ We will also need a couple ways to access tgese parameters: by index and by name
         return NULL;
     }
     
-Now we need to add new type of UAVCAN messages that we want to process to `shouldAcceptTransfer` and add its handler call to `onTransferReceived`. We should also write handler. Here it is: 
+Now we need to add new type of UAVCAN messages that we want to process to `shouldAcceptTransfer` and add its handler call to `onTransferReceived`. We should also write handler for it. Here it is: 
 
     void canard_getset_handle(CanardRxTransfer* transfer)
     {
