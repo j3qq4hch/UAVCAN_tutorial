@@ -53,58 +53,58 @@ Now we need to add new type of UAVCAN messages that we want to process to `shoul
 
     void canard_getset_handle(CanardRxTransfer* transfer)
     {
-    uint16_t index = 0xFFFF;
-    uint8_t tag    = 0;
-    int offset     = 0;
-    int64_t val    = 0;
-
-    canardDecodeScalar(transfer, offset,  13, false, &index);
-    offset += 13;
-    canardDecodeScalar(transfer, offset, 3, false, &tag);
-    offset += 3;
-
-    if(tag == 1)
-    {
-        canardDecodeScalar(transfer, offset, 64, false, &val);
-        offset += 64;
-    } 
-
-    uint16_t n = transfer->payload_len - offset / 8 ;
-    uint8_t name[16]      = "";
-    for(int i = 0; i < n; i++)
-    {
-        canardDecodeScalar(transfer, offset, 8, false, &name[i]);
-        offset += 8;
-    }
-
-    param_t * p = NULL;
-
-    if(strlen((char const*)name)) 
-    {
-        p = GetParamByName(name); //we should always try access by name first
-    }
-    else
-    {
-        p = GetParamByIndex(index);  //If no name was provided - try access by index
-    }
-
-    if((p)&&(tag == 1))
-    {
-        p->val = val;
-    }
-
-    uint8_t  buffer[64] = "";
-    uint16_t len = canardEncodeParam(p, buffer);
-    int result = canardRequestOrRespond(&canard,
-                                        transfer->source_node_id,
-                                        UAVCAN_PROTOCOL_PARAM_GETSET_SIGNATURE,
-                                        UAVCAN_PROTOCOL_PARAM_GETSET_ID,
-                                        &transfer->transfer_id,
-                                        transfer->priority,
-                                        CanardResponse,
-                                        &buffer[0],
-                                        (uint16_t)len);
-  
+	    uint16_t index = 0xFFFF;
+	    uint8_t tag    = 0;
+	    int offset     = 0;
+	    int64_t val    = 0;
+	
+	    canardDecodeScalar(transfer, offset,  13, false, &index);
+	    offset += 13;
+	    canardDecodeScalar(transfer, offset, 3, false, &tag);
+	    offset += 3;
+	
+	    if(tag == 1)
+	    {
+	        canardDecodeScalar(transfer, offset, 64, false, &val);
+	        offset += 64;
+	    } 
+	
+	    uint16_t n = transfer->payload_len - offset / 8 ;
+	    uint8_t name[16]      = "";
+	    for(int i = 0; i < n; i++)
+	    {
+	        canardDecodeScalar(transfer, offset, 8, false, &name[i]);
+	        offset += 8;
+	    }
+	
+	    param_t * p = NULL;
+	
+	    if(strlen((char const*)name)) 
+	    {
+	        p = GetParamByName(name); //we should always try access by name first
+	    }
+	    else
+	    {
+	        p = GetParamByIndex(index);  //If no name was provided - try access by index
+	    }
+	
+	    if((p)&&(tag == 1))
+	    {
+	        p->val = val;
+	    }
+	
+	    uint8_t  buffer[64] = "";
+	    uint16_t len = canardEncodeParam(p, buffer);
+	    int result = canardRequestOrRespond(&canard,
+	                                        transfer->source_node_id,
+	                                        UAVCAN_PROTOCOL_PARAM_GETSET_SIGNATURE,
+	                                        UAVCAN_PROTOCOL_PARAM_GETSET_ID,
+	                                        &transfer->transfer_id,
+	                                        transfer->priority,
+	                                        CanardResponse,
+	                                        &buffer[0],
+	                                        (uint16_t)len);
+	  
     }
 
 
