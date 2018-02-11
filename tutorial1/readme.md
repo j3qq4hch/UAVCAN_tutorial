@@ -33,26 +33,27 @@ Lets begin with initialization of libcanard
     
     static void sw_init(void)
     {
-    int result = 0;
-    CanardSTM32CANTimings timings;
-    result = canardSTM32ComputeCANTimings(RCC_Clocks.PCLK1_Frequency, 1000000, &timings);
-    if(result)
-    {
-    __ASM volatile("BKPT #01"); 			//Lets stop on a brakpoint if something is wrong
-    }
-    result = canardSTM32Init(&timings, CanardSTM32IfaceModeNormal);
-    if(result)
-    {
-    __ASM volatile("BKPT #01"); 			//Lets stop on a brakpoint if something is wrong
-    }
-    
-    canardInit(&canard,   					// Uninitialized library instance
-               canard_memory_pool, 		    // Raw memory chunk used for dynamic allocation
-               sizeof(canard_memory_pool),	// Size of the above, in bytes
-               onTransferReceived,			// Callback, see CanardOnTransferReception
-               shouldAcceptTransfer,  		// Callback, see CanardShouldAcceptTransfer
-               NULL); 
-    canardSetLocalNodeID(&canard, 100);     // We will manually set note ID to 100 for now
+	    int result = 0;
+	    CanardSTM32CANTimings timings;
+	    result = canardSTM32ComputeCANTimings(RCC_Clocks.PCLK1_Frequency, 1000000, &timings);
+	    if(result)
+	    {
+	        __ASM volatile("BKPT #01"); 
+	    }
+	    result = canardSTM32Init(&timings, CanardSTM32IfaceModeNormal);
+	    if(result)
+	    {
+	        __ASM volatile("BKPT #01"); 
+	    }
+	  
+	    canardInit(&canard,                           // Uninitialized library instance
+	               canard_memory_pool,                // Raw memory chunk used for dynamic allocation
+	               sizeof(canard_memory_pool),        // Size of the above, in bytes
+	               onTransferReceived,                // Callback, see CanardOnTransferReception
+	               shouldAcceptTransfer,              // Callback, see CanardShouldAcceptTransfer
+	               NULL); 
+	    
+	    canardSetLocalNodeID(&canard, 100);
     }
     
 `canardSTM32Init` and `canardSTM32ComputeCANTimings` stm32-specific driver functions intended to simplify CAN peripheral setup. **Important note**: libcanard stm32 can driver does not use interrupts or DMA. Its up to user to decide if CAN interrupts are needed and to implement it. 
@@ -65,54 +66,45 @@ Libcanard also needs two functions that must be implemented by user:
 
 Here are these functions:
    
-    bool shouldAcceptTransfer  (const CanardInstance* ins,
-      							uint64_t* out_data_type_signature,
-      							uint16_t data_type_id,
-      							CanardTransferType transfer_type,
-      							uint8_t source_node_id)
-    {
-        if ((transfer_type == CanardTransferTypeRequest) && (data_type_id == UAVCAN_GET_NODE_INFO_DATA_TYPE_ID))
-        {
-            *out_data_type_signature = UAVCAN_GET_NODE_INFO_DATA_TYPE_SIGNATURE;
-            return true;
-        }
-
-        if(data_type_id == UAVCAN_EQUIPMENT_ESC_RAWCOMMAND_ID)
-        {
-            *out_data_type_signature = UAVCAN_EQUIPMENT_ESC_RAWCOMMAND_SIGNATURE;
-            return true;
-        }
-        return false;
+	bool shouldAcceptTransfer(const CanardInstance* ins,
+	                          uint64_t* out_data_type_signature,
+	                          uint16_t data_type_id,
+	                          CanardTransferType transfer_type,
+	                          uint8_t source_node_id)
+	{
+	    if ((transfer_type == CanardTransferTypeRequest) &&
+	        (data_type_id == UAVCAN_GET_NODE_INFO_DATA_TYPE_ID))
+	    {
+	        *out_data_type_signature = UAVCAN_GET_NODE_INFO_DATA_TYPE_SIGNATURE;
+	        return true;
+	    }
+	
+	    if(data_type_id == UAVCAN_EQUIPMENT_ESC_RAWCOMMAND_ID)
+	    {
+	        *out_data_type_signature = UAVCAN_EQUIPMENT_ESC_RAWCOMMAND_SIGNATURE;
+	        return true;
+	    }
+	   
+	    return false;
     }
 
 	//////////////////////////////////////////////////////////////////////////////
 
     void onTransferReceived(CanardInstance* ins, CanardRxTransfer* transfer)
     {
-        if ((transfer->transfer_type == CanardTransferTypeRequest) && (transfer->data_type_id == UAVCAN_GET_NODE_INFO_DATA_TYPE_ID))
-        {
-            uint8_t buffer[UAVCAN_GET_NODE_INFO_RESPONSE_MAX_SIZE];
-            memset(buffer,0,UAVCAN_GET_NODE_INFO_RESPONSE_MAX_SIZE);
-            uint16_t len = 0;
-            len = makeNodeInfoMessage(buffer);
-            int result = canardRequestOrRespond(ins,
-                                                transfer->source_node_id,
-                                                UAVCAN_GET_NODE_INFO_DATA_TYPE_SIGNATURE,
-                                                UAVCAN_GET_NODE_INFO_DATA_TYPE_ID,
-                                                &transfer->transfer_id,
-                                                transfer->priority,
-                                                CanardResponse,
-                                                &buffer[0],
-                                               (uint16_t)len);
-            if(result) { __ASM volatile("BKPT #01"); }
-        } 
-        if(transfer->data_type_id == UAVCAN_EQUIPMENT_ESC_RAWCOMMAND_ID)
-        { 
-            canard_rawcmd_handler(transfer);  
-        }
+	    if ((transfer->transfer_type == CanardTransferTypeRequest) &&
+	    (transfer->data_type_id == UAVCAN_GET_NODE_INFO_DATA_TYPE_ID))
+	    {
+	        canard_get_node_info_handle(transfer);
+	    } 
+	    
+	    if(transfer->data_type_id == UAVCAN_EQUIPMENT_ESC_RAWCOMMAND_ID)
+	    { 
+	        canard_rawcmd_handle(transfer);
+	    }
     }
 
-As it is obvious from `shouldAcceptTransfer` out node will accept only two types of messages:
+As it is obvious from `shouldAcceptTransfer` our node will accept only two types of messages:
 
 * [`UAVCAN_GET_NODE_INFO_DATA_TYPE_ID`](http://uavcan.org/Specification/7._List_of_standard_data_types/#getnodeinfo) - this is a request that UAVCAN GUI Tool sends to all nodes that it discovers to get some data like name, software version, hardware version and so on from it. In fact this is not necessary for our task, but supporting this type of messages is a good idea.
 * [`UAVCAN_EQUIPMENT_ESC_RAWCOMMAND_ID`](http://uavcan.org/Specification/7._List_of_standard_data_types/#rawcommand) - this message contains all values needed  to generate RCPWM signal. UAVCAN GUI Tool starts to broadcast these messages when ESC Management panel is opened.
@@ -245,7 +237,7 @@ These values have to be encoded according to `NodeStatus` message description:
         canardEncodeScalar(buffer, 34,  3, &node_mode);
     }
 
-After UAVCAN GUI Tool receives this message first time it will try to get more info about the new node, so we also have to implement function that forms `GetNodeInfo` message
+After UAVCAN GUI Tool receives this message first time it will try to get more info about the new node, so we also have to implement handler that will form `GetNodeInfo` message and send it back to UAVCAN
     
     #define APP_VERSION_MAJOR   					99
     #define APP_VERSION_MINOR   					99
@@ -270,6 +262,22 @@ After UAVCAN GUI Tool receives this message first time it will try to get more i
         return 41 + name_len ;
     }
 
+	void canard_get_node_info_handle(CanardRxTransfer* transfer)
+	{
+        uint8_t buffer[UAVCAN_GET_NODE_INFO_RESPONSE_MAX_SIZE];
+        memset(buffer,0,UAVCAN_GET_NODE_INFO_RESPONSE_MAX_SIZE);
+        uint16_t len = 0;
+        len = makeNodeInfoMessage(buffer);
+        int result = canardRequestOrRespond(&canard,
+                                            transfer->source_node_id,
+                                            UAVCAN_GET_NODE_INFO_DATA_TYPE_SIGNATURE,
+                                            UAVCAN_GET_NODE_INFO_DATA_TYPE_ID,
+                                            &transfer->transfer_id,
+                                            transfer->priority,
+                                            CanardResponse,
+                                            &buffer[0],
+                                            (uint16_t)len);
+    }
 
 # App architecture #
 As libcanard does not use any interrupts and because our intention to keep everything simple the application will be organised as ordinar cycle

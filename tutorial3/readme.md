@@ -181,4 +181,3 @@ Now double click on any paramter and try changing its value.
 ![](edit_param.png)
 
 Now close Node properties window and re-open it and refetch all the parameters to make sure you actually updated parameter value. 
-
