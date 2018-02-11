@@ -110,14 +110,15 @@ Now we need to add new type of UAVCAN messages that we want to process to `shoul
 
 We also need to create a function that will encode integer param to `uavcan.protocol.param.GetSet` message. It will be a little nasty as bit operations always 
 are, but here it is. 
-
+    
     uint16_t canardEncodeParam(param_t * p, uint8_t * buffer)
     {
     uint8_t n     = 0;
     int offset    = 0;
-    uint8_t tag   = 0xFF;
+    uint8_t tag   = 1;
     if(p==NULL)
-    {
+    {   
+        tag = 0;
         canardEncodeScalar(buffer, offset, 5, &n);
         offset += 5;
         canardEncodeScalar(buffer, offset,3, &tag);
@@ -135,7 +136,6 @@ are, but here it is.
         buffer[offset / 8] = 0;
         return ( offset / 8 + 1 );
     }
-    
     canardEncodeScalar(buffer, offset, 5,&n);
     offset += 5;
     canardEncodeScalar(buffer, offset, 3, &tag);
@@ -164,11 +164,21 @@ are, but here it is.
     canardEncodeScalar(buffer, offset,64,&p->min);
     offset += 64;
     
-    memcpy(&buffer[offset / 8], p->name, strlen((char const*)p->name)); 
-    //See important note below
-    
+    memcpy(&buffer[offset / 8], p->name, strlen((char const*)p->name));
+    /* See important note below */
     return  (offset/8 + strlen((char const*)p->name)); 
     }
-**Important note** 
 
-Now its time to go to UAVCAN GUI Tool and check our newly-created parameters. Double-click on the node name and you will see  
+**Important note** According to [`UAVCAN DSDL specification`](http://uavcan.org/Specification/3._Data_structure_description_language/), section **Dynamic arrays**, there should be a bit field(often 8 bits wide) representing the length of the array prepending array field. But there is one important detail, which plays role in this particular case. DSDL also describes `tail array optimization` which means that in case when array is the last field in the UAVCAN message there is no need to specify its length and it must be skipped. That is why in the function above we did not specify length of the parameter name
+
+
+Now its time to go to UAVCAN GUI Tool and check our newly-created parameters. Double-click on the node record in the online nodes table and will see Node properties window. Click button `Fetch all` to read all parameters from Babel. You should see something like this: 
+
+![](node_properties.png)
+
+Now double click on any paramter and try changing its value. 
+
+![](edit_param.png)
+
+Now close Node properties window and re-open it and refetch all the parameters to make sure you actually updated parameter value. 
+
