@@ -9,20 +9,20 @@ So let's give our [Zubax Babel](https://zubax.com/products/babel) some parameter
 
     typedef struct
     {
-    uint8_t * name;
-    int64_t val; 
-    int64_t min;
-    int64_t max;
-    int64_t defval;
+	    uint8_t * name;
+	    int64_t val; 
+	    int64_t min;
+	    int64_t max;
+	    int64_t defval;
     } param_t;
 
 In this example we will have three integer parameters. It is not necessary but mey be considered good practice to specify default value and acceptable value range for numeric parameters.
 
     static param_t parameters[] = 
     {
-      {"param0", 0, 10,20, 15},
-      {"param1", 1, 0, 100, 25},
-      {"param2", 2, 2, 8,  3 },
+	    {"param0", 0, 10,20, 15},
+	    {"param1", 1, 0, 100, 25},
+	    {"param2", 2, 2, 8,  3 },
     };
     
 We will also need a couple ways to access tgese parameters: by index and by name with some safety checks. 
